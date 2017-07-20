@@ -16,15 +16,18 @@ KMURL="https://www.yesss.at/kontomanager.at/kundendaten.php"
 mess=`echo "$2" | cut -b -160`
 num=$1
 RES1=`curl -s -i -A "$UA" -d "login_rufnummer=$yesss_number&login_passwort=$yesss_pw" https://www.yesss.at/kontomanager.at/index.php`
-SESSID=`echo $RES1 | grep Set-Cookie | grep PHPSESSID | sed 's/.*\(PHPSESSID=.*\);.*/\1/g'`
-BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 2 -i Guthaben |  grep -i EUR | sed 's/.*\(EUR [0-9]*[\.,][0-9]*\).*/\1/g'` 
+SESSID=`echo $RES1 | grep Set-Cookie | grep PHPSESSID | sed 's/.*\(PHPSESSID=[^;]*\);.*/\1/g'`
+echo $SESSID
+#BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 2 -i Guthaben |  grep -i EUR | sed 's/.*\(EUR [0-9]*[\.,][0-9]*\).*/\1/g'` 
+BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 3 -i 'Minuten/SMS' |  grep -i Verbleibend | sed 's/.*\(Verbleibend: [0-9]*[\.,]*[0-9]*\).*/\1/g'` 
 
-echo $BAL | egrep "^EUR.*" > /dev/null
+echo $BAL | egrep "^Verbleibend:.*" > /dev/null
 ret=$?
 if [ $ret -gt 0 ]; then
   echo "error logging in OR reading balance"
   exit -1;
 fi
+BAL=`echo $BAL| sed 's/Verbleibend: \([0-9]*[\.,]*[0-9]*\)/\1 Minuten\/SMS/g'`
 #echo "session ID: $SESSID"
 echo "balance: $BAL"
 

@@ -20,6 +20,7 @@ SESSID=`echo $RES1 | grep Set-Cookie | grep PHPSESSID | sed 's/.*\(PHPSESSID=[^;
 echo $SESSID
 #BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 2 -i Guthaben |  grep -i EUR | sed 's/.*\(EUR [0-9]*[\.,][0-9]*\).*/\1/g'` 
 BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 3 -i 'Minuten/SMS' |  grep -i Verbleibend | sed 's/.*\(Verbleibend: [0-9]*[\.,]*[0-9]*\).*/\1/g'` 
+phonebook="-"
 
 echo $BAL | egrep "^Verbleibend:.*" > /dev/null
 ret=$?
@@ -39,7 +40,7 @@ if ! test -z $1; then
   echo "message: $mess"
   sleep 2 # a chance to abort!
 
-  curl -s -A "$UA" -b "$SESSID" -o /dev/null -d "to_nummer=$num&nachricht=$mess" https://www.yesss.at/kontomanager.at/websms_send.php
+  curl -s -A "$UA" -b "$SESSID" -o /dev/null -d "to_nummer=$num&telefonbuch=$phonebook&nachricht=$mess" https://www.yesss.at/kontomanager.at/websms_send.php
   if [ $? -gt 0 ]; then
     echo "error sending message"
     exit -2;

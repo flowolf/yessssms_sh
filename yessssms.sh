@@ -19,7 +19,7 @@ RES1=`curl -s -i -A "$UA" -d "login_rufnummer=$yesss_number&login_passwort=$yess
 SESSID=`echo $RES1 | grep Set-Cookie | grep PHPSESSID | sed 's/.*\(PHPSESSID=[^;]*\);.*/\1/g'`
 echo $SESSID
 #BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 2 -i Guthaben |  grep -i EUR | sed 's/.*\(EUR [0-9]*[\.,][0-9]*\).*/\1/g'` 
-BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 3 -i 'Minuten/SMS' |  grep -i Verbleibend | sed 's/.*\(Verbleibend: [0-9]*[\.,]*[0-9]*\).*/\1/g'` 
+BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 3 -i -e 'Minuten/SMS' -e 'Min/SMS/MB' |  grep -i Verbleibend | sed 's/.*\(Verbleibend: [0-9]*[\.,]*[0-9]*\).*/\1/g'` 
 phonebook="-"
 
 echo $BAL | egrep "^Verbleibend:.*" > /dev/null

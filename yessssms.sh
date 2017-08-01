@@ -51,7 +51,10 @@ if ! test -z $1; then
   echo "message: $mess"
   sleep 2 # a chance to abort!
 
-  curl -s -A "$UA" -b "$SESSID" -o /dev/null -d "to_nummer=$num&telefonbuch=$phonebook&nachricht=$mess" https://www.yesss.at/kontomanager.at/websms_send.php
+  # encoding chars manually, --data-urlencode exits without success on website
+  mess_encoded=`echo -n $mess | sed 's/%/%25/g;s/+/%2B/g;s/@/%40/g;s/ /%20/g;s/\!/%21/g;s/\"/%22/g;s/#/%23/g;s/&/%26/g;s/(/%28/g;s/)/%29/g;s/*/%2A/g;s#/#%2F#g;s/|/%7C/g;'`
+  #echo "encoded message: $mess_encoded" 
+  curl -s -A "$UA" -b "$SESSID" -o /dev/null -d "to_nummer=$num&telefonbuch=$phonebook&nachricht=$mess_encoded" https://www.yesss.at/kontomanager.at/websms_send.php
   if [ $? -gt 0 ]; then
     e="error sending message"
     echo $e

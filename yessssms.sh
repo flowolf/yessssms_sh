@@ -20,12 +20,23 @@ SESSID=`echo $RES1 | grep Set-Cookie | grep PHPSESSID | sed 's/.*\(PHPSESSID=[^;
 echo $SESSID
 #BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 2 -i Guthaben |  grep -i EUR | sed 's/.*\(EUR [0-9]*[\.,][0-9]*\).*/\1/g'` 
 BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 3 -i -e 'Minuten/SMS' -e 'Min/SMS/MB' |  grep -i Verbleibend | sed 's/.*\(Verbleibend: [0-9]*[\.,]*[0-9]*\).*/\1/g'` 
+# logging on with 1, off with 0
+LOGGING=1
+LOGFILE=./yessssms.log
 phonebook="-"
+
+function log(){
+if [ $LOGGING -eq 1 ]; then
+  echo "`date -Iseconds` $@" >> $LOGFILE
+fi
+}
 
 echo $BAL | egrep "^Verbleibend:.*" > /dev/null
 ret=$?
 if [ $ret -gt 0 ]; then
-  echo "error logging in OR reading balance"
+  e="error logging in OR reading balance"
+  echo $e
+  log $e
   exit -1;
 fi
 BAL=`echo $BAL| sed 's/Verbleibend: \([0-9]*[\.,]*[0-9]*\)/\1 Minuten\/SMS/g'`
@@ -33,24 +44,31 @@ BAL=`echo $BAL| sed 's/Verbleibend: \([0-9]*[\.,]*[0-9]*\)/\1 Minuten\/SMS/g'`
 echo "balance: $BAL"
 
 if ! test -z $1; then
-  test -z $2 && echo "$0 <number with 0043650...> \"message in quotes\"" && exit -4
+  test -z "$2" && echo "$0 <number with 0043650...> \"message in quotes\"" && exit -4
 
-  echo "sending SMS:"
+  echo "sending SMS..."
   echo "number: $num"
   echo "message: $mess"
   sleep 2 # a chance to abort!
 
   curl -s -A "$UA" -b "$SESSID" -o /dev/null -d "to_nummer=$num&telefonbuch=$phonebook&nachricht=$mess" https://www.yesss.at/kontomanager.at/websms_send.php
   if [ $? -gt 0 ]; then
-    echo "error sending message"
+    e="error sending message"
+    echo $e
+    log "$e to $num"
     exit -2;
   fi
 fi
+
+log "SMS to $num: $mess"
+
 #sleep 4 # wait a little before logging out
 #echo "logging out"
 curl -s -o /dev/null -A "$UA" -b "$SESSID" https://www.yesss.at/kontomanager.at/index.php?dologout=2
 if [ $? -gt 0 ]; then
-  echo "error logging out"
+  e="error logging out"
+  echo $e
+  log $e
   exit -3;
 fi
 

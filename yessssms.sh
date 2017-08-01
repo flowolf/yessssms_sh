@@ -17,11 +17,11 @@ mess=`echo "$2" | cut -b -160`
 num=$1
 RES1=`curl -s -i -A "$UA" -d "login_rufnummer=$yesss_number&login_passwort=$yesss_pw" https://www.yesss.at/kontomanager.at/index.php`
 SESSID=`echo $RES1 | grep Set-Cookie | grep PHPSESSID | sed 's/.*\(PHPSESSID=[^;]*\);.*/\1/g'`
-echo $SESSID
+#echo $SESSID
 #BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 2 -i Guthaben |  grep -i EUR | sed 's/.*\(EUR [0-9]*[\.,][0-9]*\).*/\1/g'` 
 BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 3 -i -e 'Minuten/SMS' -e 'Min/SMS/MB' |  grep -i Verbleibend | sed 's/.*\(Verbleibend: [0-9]*[\.,]*[0-9]*\).*/\1/g'` 
 # logging on with 1, off with 0
-LOGGING=1
+LOGGING=0
 LOGFILE=./yessssms.log
 phonebook="-"
 

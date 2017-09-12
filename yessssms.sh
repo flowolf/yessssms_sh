@@ -19,7 +19,9 @@ RES1=`curl -s -i -A "$UA" -d "login_rufnummer=$yesss_number&login_passwort=$yess
 SESSID=`echo $RES1 | grep Set-Cookie | grep PHPSESSID | sed 's/.*\(PHPSESSID=[^;]*\);.*/\1/g'`
 #echo $SESSID
 #BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 2 -i Guthaben |  grep -i EUR | sed 's/.*\(EUR [0-9]*[\.,][0-9]*\).*/\1/g'` 
-BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 3 -i -e 'Minuten/SMS' -e 'Min/SMS/MB' |  grep -i Verbleibend | sed 's/.*\(Verbleibend: [0-9]*[\.,]*[0-9]*\).*/\1/g'` 
+BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 3 -i -e 'Minuten/SMS' -e 'Min/SMS/MB' |  grep -i Verbleibend | sed 's/.*\(Verbleibend: [0-9]*[\.,]*[0-9]*\).*/\1/g'`
+
+GUT=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 2 -i "Ihr aktuelles Standardguthaben" | grep -i "EUR"| sed 's/.*\(EUR [0-9]*[\.,]*[0-9]*\).*/\1/g'` 
 # logging on with 1, off with 0
 LOGGING=0
 LOGFILE=./yessssms.log
@@ -33,7 +35,9 @@ fi
 
 echo $BAL | egrep "^Verbleibend:.*" > /dev/null
 ret=$?
-if [ $ret -gt 0 ]; then
+echo $GUT | egrep "^EUR" > /dev/null
+ret2=$?
+if [ $ret -gt 0 -a $ret2 -gt 0 ]; then
   e="error logging in OR reading balance"
   echo $e
   log $e
@@ -41,7 +45,7 @@ if [ $ret -gt 0 ]; then
 fi
 BAL=`echo $BAL| sed 's/Verbleibend: \([0-9]*[\.,]*[0-9]*\)/\1 Minuten\/SMS/g'`
 #echo "session ID: $SESSID"
-echo "balance: $BAL"
+echo "balance: $BAL$GUT"
 
 if ! test -z $1; then
   test -z "$2" && echo "$0 <number with 0043650...> \"message in quotes\"" && exit -4

@@ -9,6 +9,8 @@ Send SMS via yesss.at web interface with your yesss login and password
 """
 
 #import sys
+from __future__ import print_function
+from builtins import input
 import requests
 import argparse
 try: 
@@ -18,22 +20,31 @@ except ImportError:
     
 YESSS_NUMBER = "0681XXXXXXXXXX"
 YESSS_PASSWD = "YOUR_SECRET_YESSS_WEBLOGIN"
-to_number = "000"
+to_number = ""
+from credentials import *
 
 login_url="https://www.yesss.at/kontomanager.at/index.php"
 logout_url="https://www.yesss.at/kontomanager.at/index.php?dologout=2"
 kontomanager="https://www.yesss.at/kontomanager.at/kundendaten.php"
 websms_url = "https://www.yesss.at/kontomanager.at/websms_send.php"
-#parser = argparse.ArgumentParser()
-#parser.add_argument("number", help="Send SMS to this number")
-#parser.add_argument("message", help="The text message for the SMS")
-#args = parser.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument("number", help="Send SMS to this number")
+parser.add_argument("-m", "--message", default="", help="The text message for the SMS")
+args = parser.parse_args()
 
 #print(args.message)
 logindata={'login_rufnummer': YESSS_NUMBER, 'login_passwort': YESSS_PASSWD}
+message = args.message
+to_number = args.number
+if len(args.message) == 0:
+    # read message from stdin
+    print("message empty...")
+    message = "test message 123"
+    message = input("Please enter a message: ")[:160]
 
-message = "test message 123"
-#message = raw_input()[:160]
+print("number: " + to_number)
+print("message: " + message)
+
 
 with requests.Session() as s:
     req = s.post(login_url, data=logindata)
@@ -46,7 +57,7 @@ with requests.Session() as s:
     print("Balance: {}".format(balance))
     
     sms_data = {'to_nummer': to_number, 'nachricht': message}
-    req = s.post(websms_url,data=sms_data)
+    #req = s.post(websms_url,data=sms_data)
     
     
     

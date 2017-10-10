@@ -21,7 +21,11 @@ except ImportError:
 YESSS_NUMBER = "0681XXXXXXXXXX"
 YESSS_PASSWD = "YOUR_SECRET_YESSS_WEBLOGIN"
 to_number = ""
-from credentials import *
+# alternatively import pass and number from external file
+try:
+    from credentials import *
+except:
+    pass
 
 login_url="https://www.yesss.at/kontomanager.at/index.php"
 logout_url="https://www.yesss.at/kontomanager.at/index.php?dologout=2"

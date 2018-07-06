@@ -22,11 +22,12 @@ num=$1
 RES1=`curl -s -i -A "$UA" -d "login_rufnummer=$yesss_number&login_passwort=$yesss_pw" https://www.yesss.at/kontomanager.at/index.php`
 SESSID=`echo $RES1 | grep Set-Cookie | grep PHPSESSID | sed 's/.*\(PHPSESSID=[^;]*\);.*/\1/g'`
 #echo $SESSID
-#BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 2 -i Guthaben |  grep -i EUR | sed 's/.*\(EUR [0-9]*[\.,][0-9]*\).*/\1/g'` 
+#BAL=`curl -s -A "$UA" -b "$SESSID" $KMURL | grep -A 2 -i Guthaben |  grep -i EUR | sed 's/.*\(EUR [0-9]*[\.,][0-9]*\).*/\1/g'`
 balance_html=`curl -s -A "$UA" -b "$SESSID" $KMURL`
-BAL=`echo $balance_html |sed 's/<\/div>/<\/div>\n/g'| grep -A 5 -i -e 'Minuten/SMS' -e 'Min/SMS/MB' |  grep -i Verbleibend | sed 's/.*\(Verbleibend: [0-9]*[\.,]*[0-9]*\).*/\1/g'`
+BAL=`echo $balance_html |sed "s/>/>\n/g"|sed 's/<\/div>/<\/div>\n/g'| grep -A 5 -i -e 'Minuten/SMS' -e 'Min/SMS/MB' |  grep -i Verbleibend | sed 's/.*\(Verbleibend: [0-9]*[\.,]*[0-9]*\).*/\1/g'`
 
-GUT=`echo $balance_html | grep -A 2 -i "Ihr aktuelles Standardguthaben" | grep -i "EUR"| sed 's/.*\(EUR [0-9]*[\.,]*[0-9]*\).*/\1/g'` 
+GUT=`echo $balance_html | sed "s/>/>\n/g"| grep -A 2 -i "Ihr aktuelles Standardguthaben" | grep -i "EUR"| sed 's/.*\(EUR [0-9]*[\.,]*[0-9]*\).*/\1/g'`
+
 # logging on with 1, off with 0
 LOGGING=0
 LOGFILE=./yessssms.log
@@ -47,9 +48,10 @@ if [ $logged_in -gt 0 ]; then
   exit -1;
 fi
 
-echo $BAL
+#echo $BAL
 echo $BAL | egrep "^Verbleibend:.*" > /dev/null
 ret=$?
+#echo $GUT
 echo $GUT | egrep "^EUR" > /dev/null
 ret2=$?
 if [ $ret -gt 0 -a $ret2 -gt 0 ]; then
@@ -69,7 +71,7 @@ if ! test -z $1; then
     # read from STDIN
     echo "read from stdin"
     mess=$(</dev/stdin)
-    mess=`echo "$mess" | cut -b -160` 
+    mess=`echo "$mess" | cut -b -160`
   else
     mess=`echo "$2" | cut -b -160`
   fi
@@ -82,7 +84,7 @@ if ! test -z $1; then
 
   # encoding chars manually, --data-urlencode exits without success on website
   mess_encoded=`echo -n $mess | sed 's/%/%25/g;s/+/%2B/g;s/@/%40/g;s/ /%20/g;s/\!/%21/g;s/\"/%22/g;s/#/%23/g;s/&/%26/g;s/(/%28/g;s/)/%29/g;s/*/%2A/g;s#/#%2F#g;s/|/%7C/g;'`
-  #echo "encoded message: $mess_encoded" 
+  #echo "encoded message: $mess_encoded"
   curl -s -A "$UA" -b "$SESSID" -o /dev/null -d "to_nummer=$num&telefonbuch=$phonebook&nachricht=$mess_encoded" https://www.yesss.at/kontomanager.at/websms_send.php
   if [ $? -gt 0 ]; then
     e="error sending message"
@@ -103,4 +105,3 @@ if [ $? -gt 0 ]; then
   log $e
   exit -3;
 fi
-

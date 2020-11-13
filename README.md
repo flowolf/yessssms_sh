@@ -1,5 +1,7 @@
 # This project is unmaintained! 
 
+it's also probably broken...
+
 If you need a command line yesss.at SMS tool, have a look at [yessssms](https://github.com/flowolf/yessssms), a Python3 tool. It works in the command line as well as Python3 library.
 
 yessssms
